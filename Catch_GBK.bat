@@ -27,6 +27,9 @@ echo.  [m] 整理 aamdownload 包 (动作 [c/o] 完成后后将自动强制执行)
 echo.  [g] 生成产品包
 echo.  [l] 列出可能的缺失文件 (无法正常安装时可能有用)
 echo.  [p] 打开产品目录
+if defined #NOLOCAL# (
+   echo.  [e] 清除无用和旧版本的包
+)
 echo.
 echo.================================================================
 echo.
@@ -174,27 +177,27 @@ goto :eof
 :[MakeProducts]
 setlocal enabledelayedexpansion
 pushd %~1
-for /f "delims=" %%i in ('findstr /i /s /m /g:%~dp0config\list.txt Application.json') do (
-   call:[JsonReadHead] "%cd%\%%~i"
-   (echo.^<Name^>!#PName!^</Name^>
-   echo.^<SAPCode^>!#SCode!^</SAPCode^>
-   echo.^<CodexVersion^>!#PVer!^</CodexVersion^>
-   echo.^<Platform^>win64^</Platform^>
-   echo.^<EsdDirectory^>./!#SCode!^</EsdDirectory^>)>main
-)
 (echo.^<?xml version="1.0" encoding="utf-8"?^>
 echo.^<DriverInfo^>
 echo.^<ProductInfo^>)>0.head
 (echo.^</ProductInfo^>
 echo.^</DriverInfo^>)>0.end
-for /f "delims=" %%i in ('findstr /i /s /v /m /g:%~dp0config\list.txt Application.json') do (
-   set /a #JsonCom+=1
-   call:[JsonReadHead] "%cd%\%%~i"
-   (echo.^<Dependency^>
-   echo.^<SAPCode^>!#SCode!^</SAPCode^>
-   echo.^<BaseVersion^>!#PVer!^</BaseVersion^>
-   echo.^<EsdDirectory^>./!#SCode!^</EsdDirectory^>
-   echo.^</Dependency^>)>>misc
+for /f "delims=" %%a in ('dir /a:-d /b /s^|findstr /i Application\.json$') do (
+   call:[JsonReadHead] "%%~a"
+   echo.!#PName!|findstr /i /g:%~dp0config\list.txt>nul&&(
+      echo.^<Name^>!#PName!^</Name^>
+      echo.^<SAPCode^>!#SCode!^</SAPCode^>
+      echo.^<CodexVersion^>!#PVer!^</CodexVersion^>
+      echo.^<Platform^>win64^</Platform^>
+      echo.^<EsdDirectory^>./!#SCode!^</EsdDirectory^>
+   )>main||(
+      set /a #JsonCom+=1>nul
+      echo.^<Dependency^>
+      echo.^<SAPCode^>!#SCode!^</SAPCode^>
+      echo.^<BaseVersion^>!#PVer!^</BaseVersion^>
+      echo.^<EsdDirectory^>./!#SCode!^</EsdDirectory^>
+      echo.^</Dependency^>
+   )>>misc
 )
 if defined #JsonCom (
    echo.^<Dependencies^>>misc.head
