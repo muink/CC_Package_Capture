@@ -1,4 +1,4 @@
-:: CC Packager Capture
+:: CC Package Capture
 :: Capture Adobe CC install packages
 :: Author: muink
 
@@ -28,7 +28,7 @@ echo.  [g] 生成产品包
 echo.  [l] 列出可能的缺失文件 (无法正常安装时可能有用)
 echo.  [p] 打开产品目录
 if defined #NOLOCAL# (
-   echo.  [e] 清除无用和旧版本的包
+   echo.  [e] 列出无用或旧版本的包
 )
 echo.
 echo.================================================================
@@ -43,6 +43,7 @@ if "%choose%"=="m" goto :case_%choose%
 if "%choose%"=="g" goto :case_%choose%
 if "%choose%"=="l" goto :case_%choose%
 if "%choose%"=="p" goto :case_%choose%
+if "%choose%"=="e" goto :case_%choose%
 goto :menu
 
 :case_c
@@ -118,6 +119,22 @@ cls
 start "" "%#WORKFOLDER#%"
 goto :menu
 
+:case_e
+cls
+call:[AamdownloadArrange] "%#WORKFOLDER#%"
+call:[JsonFormat] "%#WORKFOLDER#%"
+call:[MakeProducts] "%#WORKFOLDER#%"
+cls
+pushd %#WORKFOLDER#%
+echo.
+color 0c&dir /a-d /b *.zip 2>nul
+popd
+start "" "%#WORKFOLDER#%"
+echo.
+set /p np=已列出, 请自行在弹出的产品目录中选择删除...
+color 07
+goto :menu
+
 
 
 
@@ -191,7 +208,7 @@ for /f "delims=" %%a in ('dir /a:-d /b /s^|findstr /i Application\.json$') do (
       echo.^<Platform^>win64^</Platform^>
       echo.^<EsdDirectory^>./!#SCode!^</EsdDirectory^>
    )>main||(
-      set /a #JsonCom+=1>nul
+      set /a #JsonCom+=1 >nul
       echo.^<Dependency^>
       echo.^<SAPCode^>!#SCode!^</SAPCode^>
       echo.^<BaseVersion^>!#PVer!^</BaseVersion^>
@@ -203,9 +220,9 @@ if defined #JsonCom (
    echo.^<Dependencies^>>misc.head
    echo.^</Dependencies^>>misc.end
 )
-copy /y /a 0.head+main+misc.head+misc+misc.end+0.end Driver.xml /a
+copy /y /a 0.head+main+misc.head+misc+misc.end+0.end Driver.xml /a>nul
 sed -i -n "H;${g;s/\n//g;p;}" Driver.xml
-del /q /s 0.head main misc.head misc misc.end 0.end
+del /q /s 0.head main misc.head misc misc.end 0.end>nul 2>nul
 endlocal
 goto :eof
 
