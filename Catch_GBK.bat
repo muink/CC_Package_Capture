@@ -201,7 +201,7 @@ echo.^<ProductInfo^>)>0.head
 echo.^</DriverInfo^>)>0.end
 for /f "delims=" %%a in ('dir /a:-d /b /s^|findstr /i Application\.json$') do (
    call:[JsonReadHead] "%%~a"
-   echo.!#PName!|findstr /i /g:%~dp0config\list.txt>nul&&(
+   echo.!#PName!|findstr /i /g:"%~dp0config\list.txt">nul&&(
       echo.^<Name^>!#PName!^</Name^>
       echo.^<SAPCode^>!#SCode!^</SAPCode^>
       echo.^<CodexVersion^>!#PVer!^</CodexVersion^>
